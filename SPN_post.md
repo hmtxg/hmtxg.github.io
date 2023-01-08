@@ -50,14 +50,20 @@ spn = 0.4 * (Categorical(p=[0.2, 0.8], scope=0) *
 
 ```python
 from spn.structure.leaves.parametric.Parametric import Categorical
-spn = 0.4 * (Categorical(p=[0.2, 0.8], scope=0) *
-             (0.3 * (Categorical(p=[0.3, 0.7], scope=1) *
-                     Categorical(p=[0.4, 0.6], scope=2))
-            + 0.7 * (Categorical(p=[0.5, 0.5], scope=1) *
-                     Categorical(p=[0.6, 0.4], scope=2))))
-    + 0.6 * (Categorical(p=[0.2, 0.8], scope=0) *
-             Categorical(p=[0.3, 0.7], scope=1) *
-             Categorical(p=[0.4, 0.6], scope=2))
+from spn.structure.Base import Sum, Product        
+from spn.structure.Base import assign_ids, rebuild_scopes_bottom_up
+
+p0 = Product(children=[Categorical(p=[0.3, 0.7], scope=1), Categorical(p=[0.4, 0.6], scope=2)])
+p1 = Product(children=[Categorical(p=[0.5, 0.5], scope=1), Categorical(p=[0.6, 0.4], scope=2)])
+s1 = Sum(weights=[0.3, 0.7], children=[p0, p1])
+p2 = Product(children=[Categorical(p=[0.2, 0.8], scope=0), s1])
+p3 = Product(children=[Categorical(p=[0.2, 0.8], scope=0), Categorical(p=[0.3, 0.7], scope=1)])
+p4 = Product(children=[p3, Categorical(p=[0.4, 0.6], scope=2)])
+spn = Sum(weights=[0.4, 0.6], children=[p2, p4])
+
+assign_ids(spn)
+rebuild_scopes_bottom_up(spn)
+return spn
 ```
 
    Congrats, you now have an SPN! To visualize your newly created SPN, you can use the following function to create and save an image:
